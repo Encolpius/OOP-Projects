@@ -4,10 +4,26 @@ class Game
 
     def initialize(player1)
         @player1 = player1
+        @computer = Computer.new
         @colors = ["yellow", "blue", "red", "green", "purple", "black"]
         @rounds = 1
         @peg_rounds = []
         @guess_rounds = []
+    end
+
+    def choose_players
+        puts "Would you like to be the codemaker or codebreaker?"
+        choice = gets.chomp.downcase.strip 
+        loop do 
+            if choice == "codebreaker" 
+                begin_game 
+            elsif choice == "codemaker" 
+                create_code 
+            else 
+                "Invalid choice"
+                choose_players
+            end
+        end
     end
 
     def begin_game
@@ -52,6 +68,7 @@ class Game
             @player_choices << guess
         elsif guess.to_s == "colors" 
             @colors.each { |color| puts color }
+            puts
         else 
             puts "Invalid selection. Please select a valid color."
         end    
@@ -60,7 +77,6 @@ class Game
     def add_pegs
         pegs = []
         code_temp = @code.clone
-        print code_temp
         @player_choices.each_with_index do |el, index|
             if el == code_temp[index]
                 pegs << "black"
