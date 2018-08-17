@@ -171,6 +171,7 @@ class Game
     def reset_game 
         @rounds = 1
         @peg_rounds = []
+        @player_choices = []
         @guess_rounds = []
         @count = 0
         @indexes = {}
