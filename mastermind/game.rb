@@ -1,17 +1,19 @@
 class Game 
 
-    attr_accessor :colors
+    $colors = ["yellow", "blue", "red", "green", "purple", "black"]
+    attr_accessor :code
 
     def initialize(player1)
         @player1 = player1
-        @computer = Computer.new
-        @colors = ["yellow", "blue", "red", "green", "purple", "black"]
         @rounds = 1
         @peg_rounds = []
         @guess_rounds = []
+        @indexes = {}
+        @count = 0
     end
 
     def choose_players
+        @code = []
         puts "Would you like to be the codemaker or codebreaker?"
         choice = gets.chomp.downcase.strip 
         loop do 
@@ -26,8 +28,16 @@ class Game
         end
     end
 
+    def create_code 
+        puts "Choose four colors - no duplicates - from the following: Red, Blue, Yellow, Green, Purple, and Black."
+        while @code.count < 4 
+            @code << gets.chomp.downcase.strip
+        end
+        computer_guess
+    end
+
     def begin_game
-        @code = @colors.shuffle.slice(0,4) 
+        @code = $colors.shuffle.slice(0,4) 
         play
     end
 
@@ -54,7 +64,7 @@ class Game
     end
 
     def get_player_choices 
-        puts "Round #{@rounds}. #{@player1.name}, choose a color. Type 'colors' to get the list."
+        puts "ROUND #{@rounds}. #{@player1.name}, choose a color. Type 'colors' to get the list."
         @player_choices = []
         while @player_choices.count < 4
             guess = gets.chomp.downcase.strip
@@ -64,7 +74,7 @@ class Game
     end
 
     def is_valid?(guess)
-        if @colors.include?(guess)
+        if $colors.include?(guess)
             @player_choices << guess
         elsif guess.to_s == "colors" 
             @colors.each { |color| puts color }
@@ -103,6 +113,55 @@ class Game
         end
     end
 
+    def computer_guess
+        guess = $colors.shuffle.slice(0,4)
+        computer_peg_switch(guess)
+    end
+
+    def computer_peg_switch(guess)
+        if @indexes.size > 0
+            @indexes.each_pair do |key, value|
+                guess[value] = key
+            end
+        end
+        compute_pegs(guess)
+    end
+
+    def compute_pegs(guess)
+        pegs = []
+        code_temp = @code.clone
+        guess.each_with_index do |el, index|
+            if el == code_temp[index]
+                pegs << "black"
+                @indexes[el] = index
+                index = code_temp.index(el)
+                code_temp[index] = "!"
+            elsif code_temp.include?(el)
+                pegs << "white"
+                index = code_temp.index(el)
+                code_temp[index] = "!"
+            end
+        end
+        keep_guessing
+    end
+
+    def keep_guessing
+        while @indexes.count < 4
+            @count += 1 
+            if @count > 12
+                beat_computer
+            end 
+            computer_guess
+        end
+        puts "The computer guessed in #{@count} tries!"
+        play_again?
+    end
+
+    def beat_computer 
+        puts "Congratulations! The computer was not able to guess your code!"
+        play_again?
+    end
+
     def play_again? 
         puts "Would you like to play again? Type 'yes' to continue, 'no' to exit. "
         next_game = gets.chomp.strip.downcase
@@ -113,7 +172,9 @@ class Game
         @rounds = 1
         @peg_rounds = []
         @guess_rounds = []
-        begin_game  
+        @count = 0
+        @indexes = {}
+        choose_players  
     end
 
 end
